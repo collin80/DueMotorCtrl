@@ -40,15 +40,24 @@ void setup() {
 }
 
 void loop() {
+  static int count;
+
+  count++;
+  if (count > 700)
+  {
+    count = 0;
+    SerialUSB.println(getEncoderCount());
+  }
+  
   pos = (pos + 1) & 0x3FF;
 
   a = sineTable[pos];
   b = sineTable[(pos + 341) & 0x3FF];
   c = sineTable[(pos + 682) & 0x3FF];
   
-  updatePWM(a,b,c);
+  //updatePWM(a,b,c);
 
-  delayMicroseconds(1000);
+  delayMicroseconds(3000);
 
   /*
   SerialUSB.print("a: ");

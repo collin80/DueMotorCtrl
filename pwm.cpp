@@ -17,30 +17,35 @@ void setup_pwm()
   PIOC->PIO_IDR = 0xFC;   // disable PIO interrupts for all of them
   PIOC->PIO_ABSR |= 0xFC;  // switch to B peripheral
 
-  //assuming 10khz and 1050 that would be a clock of 10.5MHz
-  PWMC_ConfigureClocks((unsigned int)PWM_FREQ * MAX_PWM_DUTY, 0, VARIANT_MCK );
+  //assuming 10khz and 1050 that would be a clock of 21MHz (Center aligned is twice speed)
+  PWMC_ConfigureClocks((unsigned int)PWM_FREQ * MAX_PWM_DUTY * 2, 0, VARIANT_MCK );
   
   //find the number of ticks necessary to ensure that dead time is at least as long as requested.
   int deadTicks = ((VARIANT_MCK * 1000ul) / ((unsigned int)PWM_FREQ * MAX_PWM_DUTY) / (unsigned int)PWM_TARGET_DEADTIME) + 1;
-  
-  PWMC_ConfigureChannel(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, 0, 0);
+
+  deadTicks = 50;
+
+  //                   PWM, Chan, Clock, Left/Center, Polarity, CountEvent, DeadEnable, DeadHighInv, DeadLowInv
+  PWMC_ConfigureChannelExt(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
   PWMC_SetPeriod (PWM_INTERFACE, 0, 1050) ;  // period = 525 ticks (10Khz), every tick is 1/5.25 micro seconds
   PWMC_SetDutyCycle (PWM_INTERFACE, 0, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above so min is 0 max is 525)
   PWMC_SetDeadTime(PWM_INTERFACE, 0, deadTicks, deadTicks) ; //set a bit of dead time around all transitions
 
-  PWMC_ConfigureChannel (PWM, 1, PWM_CMR_CPRE_CLKA, 0, 0) ; // channel 1, 84Mhz / 16 (5.25Mhz), center aligned, start low
-  PWMC_SetPeriod (PWM, 1, 1050) ;  // period = 525 ticks (10Khz), every tick is 1/5.25 micro seconds
-  PWMC_SetDutyCycle (PWM, 1, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above so min is 0 max is 525)
+  PWMC_ConfigureChannelExt (PWM, 1, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
+  PWMC_SetPeriod (PWM, 1, 1050) ; 
+  PWMC_SetDutyCycle (PWM, 1, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above
   PWMC_SetDeadTime(PWM, 1, deadTicks, deadTicks) ; //set some dead time
 
-  PWMC_ConfigureChannel (PWM, 2, PWM_CMR_CPRE_CLKA, 0, 0) ; // channel 2, 84Mhz / 16 (5.25Mhz), center aligned, start low
-  PWMC_SetPeriod (PWM, 2, 1050) ;  // period = 525 ticks (10Khz), every tick is 1/5.25 micro seconds
-  PWMC_SetDutyCycle (PWM, 2, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above so min is 0 max is 525)
+  PWMC_ConfigureChannelExt (PWM, 2, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
+  PWMC_SetPeriod (PWM, 2, 1050) ;
+  PWMC_SetDutyCycle (PWM, 2, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above
   PWMC_SetDeadTime(PWM, 2, deadTicks, deadTicks) ; //set some dead time
 
   PWMC_ConfigureSyncChannel(PWM_INTERFACE, 7, 0, 0,0); //make channels 0, 1, 2 be synchronous
   PWMC_SetSyncChannelUpdatePeriod(PWM_INTERFACE, 1);
-  PWMC_ConfigureChannel(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, 0, 0);
+  PWMC_ConfigureChannelExt(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
+  PWMC_ConfigureChannelExt(PWM_INTERFACE, 1, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
+  PWMC_ConfigureChannelExt(PWM_INTERFACE, 2, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);  
   PWMC_EnableChannel (PWM_INTERFACE, 0) ;   // enable
   PWMC_EnableChannel (PWM_INTERFACE, 1) ;   // enable
   PWMC_EnableChannel (PWM_INTERFACE, 2) ;   // enable
@@ -48,13 +53,15 @@ void setup_pwm()
 
 void updatePWM(unsigned int a, unsigned int b, unsigned int c)
 {
+  
   if (a < PWM_BUFFER) a = 0;
   if (b < PWM_BUFFER) b = 0;
   if (c < PWM_BUFFER) c = 0;
 
-  if (a > MAX_PWM_DUTY- PWM_BUFFER) a = MAX_PWM_DUTY;
-  if (b > MAX_PWM_DUTY- PWM_BUFFER) b = MAX_PWM_DUTY;
-  if (c > MAX_PWM_DUTY- PWM_BUFFER) c = MAX_PWM_DUTY;
+  if (a > (MAX_PWM_DUTY - PWM_BUFFER)) a = MAX_PWM_DUTY;
+  if (b > (MAX_PWM_DUTY - PWM_BUFFER)) b = MAX_PWM_DUTY;
+  if (c > (MAX_PWM_DUTY - PWM_BUFFER)) c = MAX_PWM_DUTY;
+  
   
   PWMC_SetDutyCycle (PWM_INTERFACE, 0, a);
   PWMC_SetDutyCycle (PWM_INTERFACE, 1, b);
