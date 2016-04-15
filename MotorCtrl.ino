@@ -5,12 +5,14 @@
 #include "pwm.h"
 #include "encoder.h"
 #include "sinetable.h"
+#include "serialconsole.h"
 
 int a, b, c, pos;
 
 EEPROMSettings settings;
 
 void setup() {
+
   analogReadResolution(12);
   
   Wire.begin();
@@ -41,6 +43,8 @@ void setup() {
 
 void loop() {
   static int count;
+  int serialCnt;
+  int in_byte;
 
   count++;
   if (count > 700)
@@ -59,16 +63,12 @@ void loop() {
 
   delayMicroseconds(3000);
 
-  /*
-  SerialUSB.print("a: ");
-  SerialUSB.println(a);  
-  
-  SerialUSB.print("b: ");
-  SerialUSB.println(b);  
-
-  SerialUSB.print("c: ");
-  SerialUSB.println(c);  
-*/
+    serialCnt = 0;
+	while ((SerialUSB.available() > 0) && serialCnt < 128) {
+		serialCnt++;
+		in_byte = SerialUSB.read();
+		serialRXChar((uint8_t)in_byte);
+	}
 }
 
 
