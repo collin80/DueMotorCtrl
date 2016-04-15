@@ -23,6 +23,7 @@ void setup() {
       settings.current2Scale = 0.001f;
       settings.inverterTemp1Scale = 1.0f;
       settings.inverterTemp2Scale = 1.0f;
+      settings.logLevel = 1;
       settings.version = 0x10;
       EEPROM.write(EEPROM_PAGE, settings);
   }

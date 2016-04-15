@@ -15,7 +15,9 @@
 
 #define EEPROM_PAGE		10
 
-struct EEPROMSettings { //25 bytes so far. Keep under 256
+#define CFG_BUILD_NUM		1000
+
+struct EEPROMSettings { //26 bytes so far. Keep under 256
 	uint8_t version; //1
 	uint32_t canSpeed; //4
 	float busVoltageScale;//4
@@ -23,6 +25,7 @@ struct EEPROMSettings { //25 bytes so far. Keep under 256
 	float current2Scale;//4
 	float inverterTemp1Scale;//4
 	float inverterTemp2Scale;//4
+	uint8_t logLevel; //1
 };
 
 extern EEPROMSettings settings;
