@@ -17,15 +17,20 @@
 
 #define CFG_BUILD_NUM		1000
 
-struct EEPROMSettings { //26 bytes so far. Keep under 256
+struct EEPROMSettings { //37 bytes so far. Keep under 256
 	uint8_t version; //1
-	uint32_t canSpeed; //4
-	float busVoltageScale;//4
-	float current1Scale;//4
-	float current2Scale;//4
-	float inverterTemp1Scale;//4
-	float inverterTemp2Scale;//4
 	uint8_t logLevel; //1
+	uint32_t canSpeed; //4
+	uint32_t canBaseAddr; //4
+	uint32_t busVoltageScale;//4 - scale value is 65535 at 1 to 1.
+	uint32_t current1Scale;//4
+	uint32_t current2Scale;//4
+	uint32_t inverterTemp1Scale;//4
+	uint32_t inverterTemp2Scale;//4	
+	uint16_t encoderCount; //2
+	uint8_t encoderDirection; //1
+	uint16_t maxRPM; //2 - whole RPMS 
+	uint16_t maxTorque; //2 - in tenths of a Nm
 };
 
 extern EEPROMSettings settings;

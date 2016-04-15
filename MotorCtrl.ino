@@ -17,16 +17,22 @@ void setup() {
   
   Wire.begin();
   EEPROM.read(EEPROM_PAGE, settings);
-  if (settings.version != 0x10)
+  if (settings.version != 0x11)
   {
-      settings.busVoltageScale = 0.11875f;
+      settings.busVoltageScale = 7782;
       settings.canSpeed = 500000;
-      settings.current1Scale = 0.001f;
-      settings.current2Scale = 0.001f;
-      settings.inverterTemp1Scale = 1.0f;
-      settings.inverterTemp2Scale = 1.0f;
+	  settings.canBaseAddr = 0x400;
+      settings.current1Scale = 65;
+      settings.current2Scale = 65;
+      settings.inverterTemp1Scale = 65535;
+      settings.inverterTemp2Scale = 65535;
+	  settings.encoderCount = 425;
+	  settings.encoderDirection = 255; //1 is incrementing forward, anything else is deincrementing forward
+	  settings.maxRPM = 1000;
+	  settings.maxTorque = 1000;
       settings.logLevel = 1;
-      settings.version = 0x10;
+      settings.version = 0x11;
+
       EEPROM.write(EEPROM_PAGE, settings);
   }
   
