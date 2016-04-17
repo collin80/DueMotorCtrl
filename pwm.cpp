@@ -23,7 +23,7 @@ void setup_pwm()
   //find the number of ticks necessary to ensure that dead time is at least as long as requested.
   int deadTicks = ((VARIANT_MCK * 1000ul) / ((unsigned int)PWM_FREQ * MAX_PWM_DUTY) / (unsigned int)PWM_TARGET_DEADTIME) + 1;
 
-  deadTicks = 50;
+  deadTicks = 40;
 
   //                   PWM, Chan, Clock, Left/Center, Polarity, CountEvent, DeadEnable, DeadHighInv, DeadLowInv
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
@@ -46,6 +46,15 @@ void setup_pwm()
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 1, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 2, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);  
+  
+  //Configure PWM hardware comparison unit to trigger while counting up and just slightly
+  //less than the maximum value. This triggers the ADC and it starts to convert right about at the time
+  //we actually reach 1050 which is the top value.
+  int compMode = PWM_CMPM_CEN; //+ PWM_CMPM_CTR(0) + PWM_CMPM_CPR(0) + PWM_CMPM_CUPR(0);
+  PWMC_ConfigureComparisonUnit(PWM_INTERFACE, 0, 1030, compMode);
+  //Use comparison unit 0 for Event line 0 which the ADC hardware is looking for triggers on
+  PWMC_ConfigureEventLineMode(PWM_INTERFACE, 0, PWM_ELMR_CSEL0);
+  
   PWMC_EnableChannel (PWM_INTERFACE, 0) ;   // enable
   PWMC_EnableChannel (PWM_INTERFACE, 1) ;   // enable
   PWMC_EnableChannel (PWM_INTERFACE, 2) ;   // enable
