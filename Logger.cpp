@@ -238,7 +238,7 @@ void Logger::logMessage(const char *format, va_list args)
             }
 
             if (*format == 'f') {
-                SerialUSB.print(va_arg(args, double), 2);
+                SerialUSB.print(va_arg(args, double), 5);
                 continue;
             }
 

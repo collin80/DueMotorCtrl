@@ -66,7 +66,7 @@ void loop() {
   {
     count = 0;
     //SerialUSB.println(getEncoderCount());
-    SerialUSB.println(interruptCount);
+    //SerialUSB.println(interruptCount);
   }
   delay(2);
   
