@@ -1,10 +1,8 @@
 #include <Arduino.h>
 #include "adc.h"
 #include "pwm.h"
-#include "sinetable.h"
 #include "config.h"
 
-volatile int a, b, c, pos;
 volatile int interruptCount;
 
 //buffer that is written by DMA automatically by ADC hardware
@@ -29,23 +27,12 @@ void ADC_Handler() //cascaded trigger - PWM triggers ADC which triggers a DMA dr
 		interruptCount++;
 		//now, while still in the handler do the FOC magic right here.
 		
-		//the below is just test code. It rapidly cycles the PWM in three phase sine waves.
-		pos = (pos + 1) & 0x3FF;
-
-		a = sineTable[pos];
-		b = sineTable[(pos + 341) & 0x3FF];
-		c = sineTable[(pos + 682) & 0x3FF];
-  
-		updatePWM(a,b,c);
+		updatePosVHz();
 	} 	
 }
 
 void setup_adc()
 {
-    a = 0;
-    b = 0;
-    c = 0;
-    pos = 0;
     interruptCount = 0;
   
 	pmc_enable_periph_clk(ID_ADC);
@@ -65,8 +52,8 @@ void setup_adc()
   
   This is all done behind the program's back via DMA so really the program gets an interrupt with all 
   five readings and requires practically no execution time to do so. 
-  
   */
+  
   ADC->ADC_MR = (1 << 0) //allow hardware triggering (for PWM based trigger)
 	      + (4 << 1) //PWM event 0 is to be our triggering condition
               + (5 << 8) //12x MCLK divider ((This value + 1) * 2) = divisor
@@ -89,34 +76,36 @@ void setup_adc()
   //ADC->ADC_CR=2; //this would start conversions but we don't do that manually, instead the PWM hardware triggers for us
   NVIC_EnableIRQ(ADC_IRQn);
   
+  setVHzSpeed(10);
+  
 }
 
 int32_t getBusVoltage()
 {
-	int32_t valu = analogRead(3) * settings.busVoltageScale;
+	int32_t valu = analogRead(3);// * settings.busVoltageScale;
 	return valu;
 }
 
 int32_t getCurrent1()
 {
-	int32_t valu = analogRead(1) * settings.current1Scale;
+	int32_t valu = analogRead(1);// * settings.current1Scale;
 	return valu;  
 }
 
 int32_t getCurrent2()
 {
-  	int32_t valu = analogRead(2) * settings.current2Scale;
+  	int32_t valu = analogRead(2);// * settings.current2Scale;
 	return valu;
 }
 
 int32_t getInvTemp1()
 {
-  	int32_t valu = analogRead(0) * settings.inverterTemp1Scale;
+  	int32_t valu = analogRead(0);// * settings.inverterTemp1Scale;
 	return valu;
 }
 
 int32_t getInvTemp2()
 {
-  	int32_t valu = analogRead(4) * settings.inverterTemp2Scale;
+  	int32_t valu = analogRead(4);// * settings.inverterTemp2Scale;
 	return valu;
 }

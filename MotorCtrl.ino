@@ -11,6 +11,11 @@
 EEPROMSettings settings;
 
 extern volatile int interruptCount;
+extern volatile uint16_t busVoltRaw;
+extern volatile uint16_t current1Raw;
+extern volatile uint16_t current2Raw;
+extern volatile uint16_t invTemp1Raw;
+extern volatile uint16_t invTemp2Raw;
 
 void setup() {
 
@@ -49,6 +54,8 @@ void setup() {
   setup_adc();
   setup_pwm();
   setup_CAN();
+  
+  setVHzSpeed(5); //ask for 5 RPM from V/Hz control system.
 
   //temporary junk just for testing
   digitalWrite(42, HIGH); //enable drive
@@ -62,11 +69,17 @@ void loop() {
   canRX(); //see if we've got any messages to input and parse
   
   count++;
-  if (count > 700)
+  if (count > 200)
   {
     count = 0;
     //SerialUSB.println(getEncoderCount());
     //SerialUSB.println(interruptCount);
+    SerialUSB.println(busVoltRaw);
+    SerialUSB.println(current1Raw);
+    SerialUSB.println(current2Raw);
+    SerialUSB.println(invTemp1Raw);
+    SerialUSB.println(invTemp2Raw);
+    SerialUSB.println();
   }
   delay(2);
   
@@ -76,7 +89,6 @@ void loop() {
 		in_byte = SerialUSB.read();
 		serialRXChar((uint8_t)in_byte);
 	}
-   
 }
 
 
