@@ -7,6 +7,7 @@
 #include "encoder.h"
 #include "serialconsole.h"
 #include "canbus.h"
+#include "vhz.h"
 
 EEPROMSettings settings;
 
@@ -51,6 +52,7 @@ void setup() {
   }
   
   setup_encoder();
+  setupVHz();
   setup_adc();
   setup_pwm();
   setup_CAN();
@@ -72,14 +74,14 @@ void loop() {
   if (count > 200)
   {
     count = 0;
-    //SerialUSB.println(getEncoderCount());
-    //SerialUSB.println(interruptCount);
+    SerialUSB.println(getEncoderCount());
+    SerialUSB.println(interruptCount);
     SerialUSB.println(busVoltRaw);
-    SerialUSB.println(current1Raw);
-    SerialUSB.println(current2Raw);
-    SerialUSB.println(invTemp1Raw);
-    SerialUSB.println(invTemp2Raw);
-    SerialUSB.println();
+    //SerialUSB.println(current1Raw);
+    //SerialUSB.println(current2Raw);
+    //SerialUSB.println(invTemp1Raw);
+    //SerialUSB.println(invTemp2Raw);
+    //SerialUSB.println();
   }
   delay(2);
   

@@ -53,6 +53,8 @@ struct STATUS
 	uint16_t rpm; //whole numbers - 1 rpm
 };
 
+
+
 extern EEPROMSettings settings;
 extern STATUS controllerStatus;
 

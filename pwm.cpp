@@ -1,17 +1,9 @@
 #include <Arduino.h>
 #include "pwm.h"
-#include "sinetable.h"
 #include "config.h"
-
-unsigned int posAccum;
-unsigned int posInc;
-int rotorPosition;
 
 void setup_pwm()
 {
-  posAccum = 0;
-  rotorPosition = 0;
-  posInc = 0;
   pinMode(42, OUTPUT);  
 
   pmc_enable_periph_clk (PWM_INTERFACE_ID) ;  // turn on clocking to PWM unit
@@ -83,42 +75,4 @@ void updatePWM(unsigned int a, unsigned int b, unsigned int c)
   PWMC_SetDutyCycle (PWM_INTERFACE, 1, b);
   PWMC_SetDutyCycle (PWM_INTERFACE, 2, c);
   PWMC_SetSyncChannelUpdateUnlock(PWM_INTERFACE); //enable setting of all those duties all at once
-}
-
-//this target RPM is in mechanical / motor RPM not electrical RPM
-//Smoothly scales post and pre multipliers to keep within proper range. Output variable posInc
-//is scaled up 65536 in the end.
-void setVHzSpeed(int targetRPM)
-{ 
-	int elecRPM = (targetRPM * settings.numPoles);
-	int preMultiplier = 16;
-	int postMultiplier = 0;
-	int testVal = elecRPM;
-	while (testVal > 1024)
-	{
-	      testVal = testVal >> 1;
-	      preMultiplier--;
-	      postMultiplier++;
-	}
-	
-	posInc = ((((elecRPM * 1024) / 60) << preMultiplier) / 10000) << postMultiplier;  
-	controllerStatus.rpm = targetRPM;
-}
-
-void updatePosVHz()
-{
-	int a, b, c;
-		
-	posAccum += posInc;
-	
-	rotorPosition += (posAccum >> 16);
-	rotorPosition &= 0x3FF;
-	
-	posAccum &= 0xFFFF;
-
-	a = sineTable[rotorPosition];
-	b = sineTable[(rotorPosition + 341) & 0x3FF];
-	c = sineTable[(rotorPosition + 682) & 0x3FF];
-  
-	updatePWM(a,b,c);
 }
