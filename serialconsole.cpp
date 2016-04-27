@@ -5,6 +5,7 @@
 #include "serialconsole.h"
 #include "config.h"
 #include "Logger.h"
+#include "pwm.h"
 
 char cmdBuffer[80];
 int ptrBuffer;
@@ -59,6 +60,9 @@ void serialPrintMenu() {
 	Logger::console("MAXTRQ=%i - Set maximum torque (0.1Nm scale)", settings.maxTorque);
 	Logger::console("MAXAMPDRIVE=%i - Set maximum amperage while in drive/reverse (0.1A scale)", settings.maxAmpsDrive);
 	Logger::console("MAXAMPREGEN=%i - Set maximum amperage for regen (0.1A scale)", settings.maxAmpsRegen);
+	SerialUSB.println();
+
+	Logger::console("VHZRPM=%i - Set V/Hz mode target RPM (for debugging only)", controllerStatus.rpm);
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -257,6 +261,14 @@ void handleConfigCmd() {
 			writeEEPROM = true;
 		}
 		else Logger::console("Please enter a coefficient between 0.0 and 10.0");	  
+	} else if (cmdString == String("VHZRPM")) {
+		if (newValue >= 0 && newValue <= settings.maxRPM) 
+		{
+			Logger::console("Setting V/Hz target RPM to %i", newValue);
+			controllerStatus.rpm = newValue;
+			setVHzSpeed(newValue);
+		}
+		else Logger::console("Invalid max RPM. Must be positive and less than your max RPM setting"); 
 	} else if (cmdString == String("MAXRPM")) {
 		if (newValue > 0 && newValue <= 30000) 
 		{

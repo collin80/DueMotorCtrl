@@ -102,6 +102,7 @@ void setVHzSpeed(int targetRPM)
 	}
 	
 	posInc = ((((elecRPM * 1024) / 60) << preMultiplier) / 10000) << postMultiplier;  
+	controllerStatus.rpm = targetRPM;
 }
 
 void updatePosVHz()
@@ -111,7 +112,7 @@ void updatePosVHz()
 	posAccum += posInc;
 	
 	rotorPosition += (posAccum >> 16);
-	rotorPosition &= 0x3FFF;
+	rotorPosition &= 0x3FF;
 	
 	posAccum &= 0xFFFF;
 

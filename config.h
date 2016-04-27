@@ -44,8 +44,16 @@ struct EEPROMSettings { //63 bytes so far. Keep under 256
 	uint16_t maxTorque; //2 - in tenths of a Nm
 	uint16_t maxAmpsDrive; // 2 - in tenths of an amp
 	uint16_t maxAmpsRegen; // 2 - in tenths
+	uint16_t vhzProperRPM; // 2 - RPM at which we should be up to full voltage.
+};
+
+struct STATUS
+{
+	int rmsCurrent;
+	uint16_t rpm; //whole numbers - 1 rpm
 };
 
 extern EEPROMSettings settings;
+extern STATUS controllerStatus;
 
 #endif
