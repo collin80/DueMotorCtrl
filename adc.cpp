@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "adc.h"
 #include "pwm.h"
+#include "vhz.h"
 #include "config.h"
 
 volatile int interruptCount;

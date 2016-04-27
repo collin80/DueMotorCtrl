@@ -46,6 +46,8 @@ struct EEPROMSettings { //63 bytes so far. Keep under 256
 	uint16_t maxAmpsRegen; // 2 - in tenths
 };
 
+
+
 extern EEPROMSettings settings;
 
 #endif
