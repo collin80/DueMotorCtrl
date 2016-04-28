@@ -45,9 +45,10 @@ void updatePosVHz()
 	
 	posAccum &= 0xFFFF;
 
-	a = sineTable[rotorPosition];
-	b = sineTable[(rotorPosition + 341) & 0x3FF];
-	c = sineTable[(rotorPosition + 682) & 0x3FF];
+	//broken now!
+	//a = sineTable[rotorPosition];
+	//b = sineTable[(rotorPosition + 341) & 0x3FF];
+	//c = sineTable[(rotorPosition + 682) & 0x3FF];
   
 	updatePWM(a,b,c);
 }

@@ -10,7 +10,9 @@
 #include "vhz.h"
 
 EEPROMSettings settings;
+volatile STATUS controllerStatus;
 
+//used for temporary debugging
 extern volatile int interruptCount;
 extern volatile uint16_t busVoltRaw;
 extern volatile uint16_t current1Raw;
@@ -24,16 +26,21 @@ void setup() {
   
   Wire.begin();
   EEPROM.read(EEPROM_PAGE, settings);
-  if (settings.version != 0x11)
+  if (settings.version != 0x13)
   {
 	settings.busVoltageScale = 7782;
+	settings.busVoltageBias = 0;
 	settings.canSpeed = 500000;
 	settings.canBaseRx = 0x230;
 	settings.canBaseTx = 0x410;
 	settings.current1Scale = 65;
+	settings.current1Bias = 2013;
 	settings.current2Scale = 65;
+	settings.current2Bias = 2013;
 	settings.inverterTemp1Scale = 65536;
+	settings.inverterTemp1Bias = 0;
 	settings.inverterTemp2Scale = 65536;
+	settings.inverterTemp2Bias = 0;
 	settings.encoderCount = 425;
 	settings.encoderDirection = 255; //1 is incrementing forward, anything else is deincrementing forward
 	settings.maxRPM = 1000;
@@ -47,7 +54,7 @@ void setup() {
 	settings.maxAmpsDrive = 400; //in tenths so this isn't a lot of current
 	settings.maxAmpsRegen = 200; //in tenths
 	settings.logLevel = 1;
-	settings.version = 0x11;
+	settings.version = 0x13;
 	EEPROM.write(EEPROM_PAGE, settings);
   }
   
@@ -75,13 +82,14 @@ void loop() {
   {
     count = 0;
     SerialUSB.println(getEncoderCount());
-    SerialUSB.println(interruptCount);
-    SerialUSB.println(busVoltRaw);
-    //SerialUSB.println(current1Raw);
-    //SerialUSB.println(current2Raw);
-    //SerialUSB.println(invTemp1Raw);
-    //SerialUSB.println(invTemp2Raw);
-    //SerialUSB.println();
+	SerialUSB.println(getBusVoltage() >> 16);
+	SerialUSB.println(getCurrent1() >> 16);
+	SerialUSB.println(getCurrent2() >> 16);
+    SerialUSB.println();
+	SerialUSB.println(busVoltRaw);
+	SerialUSB.println(current1Raw);
+	SerialUSB.println(current1Raw);
+	SerialUSB.println();
   }
   delay(2);
   

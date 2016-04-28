@@ -37,7 +37,6 @@ int getEncoderCount()
 }
 
 void TC1_Handler() {
-
  z_Total++;
  long dummy=REG_TC0_SR1; // vital - reading this clears some flag
  // otherwise you get infinite interrupts

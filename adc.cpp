@@ -28,7 +28,7 @@ void ADC_Handler() //cascaded trigger - PWM triggers ADC which triggers a DMA dr
 		interruptCount++;
 		//now, while still in the handler do the FOC magic right here.
 		
-		updatePosVHz();
+		//updatePosVHz();
 	} 	
 }
 
@@ -76,37 +76,34 @@ void setup_adc()
   ADC->ADC_PTCR=1; //enable dma mode
   //ADC->ADC_CR=2; //this would start conversions but we don't do that manually, instead the PWM hardware triggers for us
   NVIC_EnableIRQ(ADC_IRQn);
-  
-  setVHzSpeed(10);
-  
 }
 
 int32_t getBusVoltage()
 {
-	int32_t valu = analogRead(3);// * settings.busVoltageScale;
+	int32_t valu = (busVoltRaw - settings.busVoltageBias) * settings.busVoltageScale;
 	return valu;
 }
 
 int32_t getCurrent1()
 {
-	int32_t valu = analogRead(1);// * settings.current1Scale;
+	int32_t valu = (current1Raw - settings.current1Bias) * settings.current1Scale;
 	return valu;  
 }
 
 int32_t getCurrent2()
 {
-  	int32_t valu = analogRead(2);// * settings.current2Scale;
+  	int32_t valu = (current2Raw - settings.current2Bias) * settings.current2Scale;
 	return valu;
 }
 
 int32_t getInvTemp1()
 {
-  	int32_t valu = analogRead(0);// * settings.inverterTemp1Scale;
+	int32_t valu = (invTemp1Raw - settings.inverterTemp1Bias) * settings.inverterTemp1Scale;
 	return valu;
 }
 
 int32_t getInvTemp2()
 {
-  	int32_t valu = analogRead(4);// * settings.inverterTemp2Scale;
+  	int32_t valu = (invTemp1Raw - settings.inverterTemp1Bias) * settings.inverterTemp1Scale;
 	return valu;
 }

@@ -8,9 +8,11 @@
 class PID
 {
 public:
-  PID(int32_t p, int32_t i, int32_t d);
+  PID(int p, int i, int d);
   PID(float p, float i, float d);
   
+  void setCoeffs(int32_t p, int32_t i, int32_t d);
+  void setCoeffs(float p, float i, float d);
   void setRef(int32_t pnt);
   void setMinValue(int32_t mn);
   void setMaxValue(int32_t mx);

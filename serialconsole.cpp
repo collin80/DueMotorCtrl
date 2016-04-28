@@ -6,6 +6,7 @@
 #include "config.h"
 #include "Logger.h"
 #include "pwm.h"
+#include "vhz.h"
 
 char cmdBuffer[80];
 int ptrBuffer;
@@ -44,6 +45,13 @@ void serialPrintMenu() {
 	Logger::console("CURR2SCALE=%f - Set current sensor 2 scaling factor", settings.current2Scale / 65536.0f);
 	Logger::console("INVTEMP1SCALE=%f - Set inverter temp 1 scaling factor", settings.inverterTemp1Scale / 65536.0f);
 	Logger::console("INVTEMP2SCALE=%f - Set inverter temp 2 scaling factor", settings.inverterTemp2Scale / 65536.0f);
+	SerialUSB.println();
+
+	Logger::console("BUSVOLTBIAS=%i - Set bus voltage bias", settings.busVoltageBias);
+	Logger::console("CURR1BIAS=%i - Set current sensor 1 bias", settings.current1Bias);
+	Logger::console("CURR2BIAS=%i - Set current sensor 2 bias", settings.current2Bias);
+	Logger::console("INVTEMP1BIAS=%i - Set inverter temp 1 bias", settings.inverterTemp1Bias);
+	Logger::console("INVTEMP2BIAS=%i - Set inverter temp 2 bias", settings.inverterTemp2Bias);
 	SerialUSB.println();
 	
 	Logger::console("MOTORTYPE=%i - Set motor type (0 = induction, 1 = PMAC, 2 = BLDC (trapezoid)", settings.motorType);
@@ -157,6 +165,46 @@ void handleConfigCmd() {
 			writeEEPROM = true;
 		}
 		else Logger::console("Invalid base address. Must be more than 0 and less than 0x7FF");	  
+	} else if (cmdString == String("BUSVOLTBIAS")) {
+		if (newValue > 0 && newValue <= 0xFFFF) 
+		{
+			Logger::console("Setting bus voltage ADC bias to %i", newValue);
+			settings.busVoltageBias = newValue;
+			writeEEPROM = true;
+		}
+		else Logger::console("Invalid ADC bias value. Must be between 0 and 65535");	  
+	} else if (cmdString == String("CURR1BIAS")) {
+		if (newValue > 0 && newValue <= 0xFFFF) 
+		{
+			Logger::console("Setting current 1 ADC bias to %i", newValue);
+			settings.current1Bias = newValue;
+			writeEEPROM = true;
+		}
+		else Logger::console("Invalid ADC bias value. Must be between 0 and 65535");	  
+	} else if (cmdString == String("CURR2BIAS")) {
+		if (newValue > 0 && newValue <= 0xFFFF) 
+		{
+			Logger::console("Setting current 2 ADC bias to %i", newValue);
+			settings.current2Bias = newValue;
+			writeEEPROM = true;
+		}
+		else Logger::console("Invalid ADC bias value. Must be between 0 and 65535");	  
+	} else if (cmdString == String("INVTEMP1BIAS")) {
+		if (newValue > 0 && newValue <= 0xFFFF) 
+		{
+			Logger::console("Setting temp 1 bias ADC bias to %i", newValue);
+			settings.inverterTemp1Bias = newValue;
+			writeEEPROM = true;
+		}
+		else Logger::console("Invalid ADC bias value. Must be between 0 and 65535");	  
+	} else if (cmdString == String("INVTEMP2BIAS")) {
+		if (newValue > 0 && newValue <= 0xFFFF) 
+		{
+			Logger::console("Setting temp 2 bias ADC bias to %i", newValue);
+			settings.inverterTemp2Bias = newValue;
+			writeEEPROM = true;
+		}
+		else Logger::console("Invalid ADC bias value. Must be between 0 and 65535");	  
 	} else if (cmdString == String("BUSVOLTSCALE")) {
 		if (newFloatVal > 0.0f && newFloatVal <= 10.0f) 
 		{
