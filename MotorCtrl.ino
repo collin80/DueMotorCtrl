@@ -8,6 +8,7 @@
 #include "serialconsole.h"
 #include "canbus.h"
 #include "vhz.h"
+#include "foc.h"
 
 EEPROMSettings settings;
 volatile STATUS controllerStatus;
@@ -26,7 +27,7 @@ void setup() {
   
   Wire.begin();
   EEPROM.read(EEPROM_PAGE, settings);
-  if (settings.version != 0x13)
+  if (settings.version != EEPROM_VER)
   {
 	settings.busVoltageScale = 7782;
 	settings.busVoltageBias = 0;
@@ -46,6 +47,7 @@ void setup() {
 	settings.maxRPM = 1000;
 	settings.maxTorque = 1000; //in tenths
 	settings.motorType = 0; //induction motor
+	settings.controlType = 1; //FOC
 	settings.numPoles = 4; //number of pairs really (N/S)
 	settings.pid_KD = 0;
 	settings.pid_KI = 80;
@@ -54,17 +56,18 @@ void setup() {
 	settings.maxAmpsDrive = 400; //in tenths so this isn't a lot of current
 	settings.maxAmpsRegen = 200; //in tenths
 	settings.logLevel = 1;
-	settings.version = 0x13;
+	settings.version = EEPROM_VER;
 	EEPROM.write(EEPROM_PAGE, settings);
   }
   
   setup_encoder();
-  setupVHz();
+  if (settings.controlType == 0) setupVHz();
+  if (settings.controlType == 1) setupFOC();
   setup_adc();
   setup_pwm();
   setup_CAN();
   
-  setVHzSpeed(5); //ask for 5 RPM from V/Hz control system.
+  if (settings.controlType == 0) setVHzSpeed(5); //ask for 5 RPM from V/Hz control system.
 
   //temporary junk just for testing
   digitalWrite(42, HIGH); //enable drive

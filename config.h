@@ -21,6 +21,8 @@
 
 #define CFG_BUILD_NUM		1000
 
+#define EEPROM_VER			0x14
+
 struct EEPROMSettings { //87 bytes so far. Keep under 256
 	uint8_t version; //1
 	uint8_t logLevel; //1
@@ -41,6 +43,7 @@ struct EEPROMSettings { //87 bytes so far. Keep under 256
 	uint32_t inverterTemp2Bias; //4
 	
 	uint8_t motorType; //1 - 0 = induction, 1 = permanent magnet (sine), 2 = BLDC (trapezoid)
+	uint8_t controlType; //0 = Vhz, 1 = FOC
 	uint32_t encoderCount; //4 - number of pulses per mechanical revolution
 	uint8_t encoderDirection; //1
 	uint8_t numPoles; //1

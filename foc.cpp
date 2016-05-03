@@ -51,7 +51,8 @@ void updateFOC()
 	11. Update PWM values in hardware
 
 	Also, much of this was written while looking at the AC controller code written by
-	Paul Holmes. Give that man a beer for me.
+	Paul Holmes. Give that man a beer for me. You might note that a lot is different but it
+	was a good reference.
 	*/
 	
 	//step 1 - Get current and rotor velocity
@@ -64,27 +65,29 @@ void updateFOC()
 	temp = getEncoderCount();
 	mechVelo = temp - controllerStatus.lastEncoderPos;
 	if (settings.encoderDirection != 0) mechVelo *= -1;
-	//division is reasonably cheap on a SAM3X but this is 64 bit division which might suck
-	veloTemp = (mechVelo * (0x100000000ul) / settings.encoderCount) >> 16; //output is full rotation being 65536
+	//division is reasonably cheap on a SAM3X (12 clocks) but this is 64 bit division which is about 14x slower.
+	//Use 64 bit math very sparingly!
+	//divide by encoderCount * 4 because we have quadrature input so it is 4x encoder resolution
+	veloTemp = (mechVelo * (0x100000000ul) / (settings.encoderCount * 4)) / 65536; //output is full rotation being 65536
 	mechVelo = (int32_t) veloTemp;
 	elecVelo = mechVelo * settings.numPoles; //always equal to or faster than mechanical speed.
 	controllerStatus.lastEncoderPos = temp;
 
 	//step 3 - Clarke transform
 	Ia = controllerStatus.phaseCurrentA;
-	Ib = ((controllerStatus.phaseCurrentB * 2 + controllerStatus.phaseCurrentA) * 37837u) >> 16;
+	Ib = ((controllerStatus.phaseCurrentB * 2 + controllerStatus.phaseCurrentA) * 37837) / 65536;
 
 	//Step 4 - Park transform
 	anglePlus90 = (controllerStatus.theta  + 128) & 511;
 	sineVal = _sin_times32768[controllerStatus.theta];
 	cosineVal = _sin_times32768[anglePlus90];
 
-	controllerStatus.Id = ((Ia * cosineVal) + (Ib * sineVal)) >> 15;
-	controllerStatus.Iq = ((-Ia * sineVal) + (Ib * cosineVal)) >> 15;
+	controllerStatus.Id = ((Ia * cosineVal) + (Ib * sineVal)) / 32768;
+	controllerStatus.Iq = ((-Ia * sineVal) + (Ib * cosineVal)) / 32768;
 
 	//Step 5 - Refine reference values
 	controllerStatus.IdRef = 0; //for PMAC reference is zero here
-	controllerStatus.IqRef = 200; //hard coded small amount for testing
+	controllerStatus.IqRef = 100; //hard coded small amount for testing
 
 	//Step 6&7 - Use PI loops to get Vd, Vq values
 	qPID.setRef(controllerStatus.IqRef);
@@ -109,9 +112,9 @@ void updateFOC()
 
 	//Step 10 - Inverse Clarke to go from Va, Vb to phase PWMs
 	PWMA = Va;
-	vbSqrt = (Vb * 56756u) >> 16;
-	PWMB = (-Va + vbSqrt) >> 1;
-	PWMC = (-Va - vbSqrt) >> 1;
+	vbSqrt = (Vb * (int)56756) / 65536;
+	PWMB = (-Va + vbSqrt) / 2;
+	PWMC = (-Va - vbSqrt) / 2;
 
 	//SVM style PWM output
 	if (PWMA <= PWMB)

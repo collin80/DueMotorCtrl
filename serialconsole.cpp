@@ -55,6 +55,7 @@ void serialPrintMenu() {
 	SerialUSB.println();
 	
 	Logger::console("MOTORTYPE=%i - Set motor type (0 = induction, 1 = PMAC, 2 = BLDC (trapezoid)", settings.motorType);
+	Logger::console("CTRLTYPE=%i - Set control type (0 = V/Hz, 1 = FOC)", settings.controlType);
 	Logger::console("MOTORNUMPOLES=%i - Set number of pole pairs", settings.numPoles);
 	Logger::console("MOTORTIMECONST=%f - Set motor time constant (for induction motors)", settings.rotorTimeConst / 65536.0f);
 	Logger::console("ENCODERCOUNT=%i - Set number of encoder pulses per rev", settings.encoderCount);
@@ -261,6 +262,14 @@ void handleConfigCmd() {
 			writeEEPROM = true;
 		}
 		else Logger::console("Invalid motor type. Please enter 0, 1, or 2"); 
+	} else if (cmdString == String("CTRLTYPE")) {
+		if (newValue >= 0 && newValue <= 1) 
+		{
+			Logger::console("Setting control type to %i", newValue);
+			settings.motorType = newValue;
+			writeEEPROM = true;
+		}
+		else Logger::console("Invalid control type. Please enter 0 or 1"); 
 	} else if (cmdString == String("MOTORNUMPOLES")) {
 		if (newValue > 0 && newValue <= 40) 
 		{

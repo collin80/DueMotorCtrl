@@ -2,6 +2,7 @@
 #include "adc.h"
 #include "pwm.h"
 #include "vhz.h"
+#include "foc.h"
 #include "config.h"
 
 volatile int interruptCount;
@@ -28,7 +29,8 @@ void ADC_Handler() //cascaded trigger - PWM triggers ADC which triggers a DMA dr
 		interruptCount++;
 		//now, while still in the handler do the FOC magic right here.
 		
-		//updatePosVHz();
+		if (settings.controlType == 0) updatePosVHz();
+		if (settings.controlType == 1) updateFOC();
 	} 	
 }
 
