@@ -62,6 +62,16 @@ void setup_pwm()
 
 void updatePWM(unsigned int a, unsigned int b, unsigned int c)
 {
+  static int ledCounter = 0;
+  
+  ledCounter++;
+  
+  if (ledCounter == 1000) PIO_SetOutput(PIOC, PIO_PC20, HIGH, 0, PIO_PULLUP);
+  if (ledCounter == 2000)
+  {
+      PIO_SetOutput(PIOC, PIO_PC20, LOW, 0, PIO_PULLUP);
+      ledCounter = 0;
+  }
   
   if (a < PWM_BUFFER) a = 0;
   if (b < PWM_BUFFER) b = 0;

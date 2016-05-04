@@ -7,6 +7,7 @@
 #include "Logger.h"
 #include "pwm.h"
 #include "vhz.h"
+#include "foc.h"
 
 char cmdBuffer[80];
 int ptrBuffer;
@@ -72,6 +73,7 @@ void serialPrintMenu() {
 	SerialUSB.println();
 
 	Logger::console("VHZRPM=%i - Set V/Hz mode target RPM (for debugging only)", controllerStatus.rpm);
+	Logger::console("ANGLEOFFSET=%i - Set anglular offset (0 - 511)", settings.thetaOffset);
 }
 
 /*	There is a help menu (press H or h or ?)
@@ -290,7 +292,7 @@ void handleConfigCmd() {
 		if (newValue >= 0 && newValue <= 1) 
 		{
 			Logger::console("Setting encoder direction to %i", newValue);
-			settings.encoderCount = newValue;
+			settings.encoderDirection = newValue;
 			writeEEPROM = true;
 		}
 		else Logger::console("Invalid encoder direction. Value must be either 0 or 1"); 
@@ -326,6 +328,14 @@ void handleConfigCmd() {
 			setVHzSpeed(newValue);
 		}
 		else Logger::console("Invalid max RPM. Must be positive and less than your max RPM setting"); 
+	} else if (cmdString == String("ANGLEOFFSET")) {
+		if (newValue >= 0 && newValue <= 511) 
+		{
+			Logger::console("Setting angular offset to %i", newValue);
+			settings.thetaOffset = newValue;
+			writeEEPROM = true;
+		}
+		else Logger::console("Invalid angular offset. Must be between 0 and 511"); 		
 	} else if (cmdString == String("MAXRPM")) {
 		if (newValue > 0 && newValue <= 30000) 
 		{
@@ -409,6 +419,10 @@ void handleShortCmd() {
 		settings.version = 0xFF;
 		EEPROM.write(EEPROM_PAGE, settings);
 		Logger::console("Power cycle to reset to factory defaults");
+		break;
+	case 'X':
+		Logger::console("Starting the offset test");
+		startOffsetTest();
 		break;
 	}
 }

@@ -57,6 +57,7 @@ struct EEPROMSettings { //87 bytes so far. Keep under 256
 	uint16_t maxAmpsDrive; // 2 - in tenths of an amp
 	uint16_t maxAmpsRegen; // 2 - in tenths
 	uint16_t vhzProperRPM; // 2 - RPM at which we should be up to full voltage.
+	uint16_t thetaOffset; //2 - offset for theta used for PMAC motors
 };
 
 //much of this is only relevant for debugging and internal operations
@@ -74,6 +75,16 @@ struct STATUS
 	uint32_t theta; //rotation angle. Uses sine table with 512 entries so range is 0 - 511
 	int32_t lastEncoderPos;
 	uint16_t rpm; //whole numbers - 1 rpm
+	bool runningOffsetTest;
+};
+
+struct OFFSET_TEST
+{
+	uint32_t testStart; //value when current test iteration started
+	uint32_t currentOffset; //the current offset we're on
+	uint32_t bestOffset; //best offset we've seen so far.
+	uint32_t bestAccum; //largest positional offset found
+	uint32_t posAccum; //stores the positional offset so far for this test.
 };
 
 extern EEPROMSettings settings;

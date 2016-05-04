@@ -25,6 +25,8 @@ void setup() {
 
   analogReadResolution(12);
   
+  PIO_Configure(PIOC, PIO_OUTPUT_0, PIO_PC20, PIO_DEFAULT); 
+  
   Wire.begin();
   EEPROM.read(EEPROM_PAGE, settings);
   if (settings.version != EEPROM_VER)
@@ -56,9 +58,23 @@ void setup() {
 	settings.maxAmpsDrive = 400; //in tenths so this isn't a lot of current
 	settings.maxAmpsRegen = 200; //in tenths
 	settings.logLevel = 1;
+	settings.thetaOffset = 0;
 	settings.version = EEPROM_VER;
 	EEPROM.write(EEPROM_PAGE, settings);
   }
+  
+	controllerStatus.rmsCurrent = 0;
+	controllerStatus.phaseCurrentA = 0;
+	controllerStatus.phaseCurrentB = 0;
+	controllerStatus.phaseCurrentC = 0;
+	controllerStatus.Iq = 0; 
+	controllerStatus.Id = 0;
+	controllerStatus.IqRef = 0; 
+	controllerStatus.IdRef = 0;
+	controllerStatus.theta = 0; 
+	controllerStatus.lastEncoderPos = 0;
+	controllerStatus.rpm = 0;
+	controllerStatus.runningOffsetTest = false;
   
   setup_encoder();
   if (settings.controlType == 0) setupVHz();
@@ -83,15 +99,12 @@ void loop() {
   count++;
   if (count > 200)
   {
-    count = 0;
-    SerialUSB.println(getEncoderCount());
+	count = 0;
+    
+	SerialUSB.println(getEncoderCount());
 	SerialUSB.println(getBusVoltage() >> 16);
 	SerialUSB.println(getCurrent1() >> 16);
 	SerialUSB.println(getCurrent2() >> 16);
-    SerialUSB.println();
-	SerialUSB.println(busVoltRaw);
-	SerialUSB.println(current1Raw);
-	SerialUSB.println(current1Raw);
 	SerialUSB.println();
   }
   delay(2);
