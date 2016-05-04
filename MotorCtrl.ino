@@ -101,8 +101,8 @@ void loop() {
   {
 	count = 0;
     
-	SerialUSB.println(getEncoderCount());
-	SerialUSB.println(getBusVoltage() >> 16);
+	//SerialUSB.println(getEncoderCount());
+	//SerialUSB.println(getBusVoltage() >> 16);
 	SerialUSB.println(getCurrent1() >> 16);
 	SerialUSB.println(getCurrent2() >> 16);
 	SerialUSB.println();

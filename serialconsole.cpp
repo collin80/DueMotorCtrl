@@ -29,6 +29,8 @@ void serialPrintMenu() {
 	SerialUSB.println("Short Commands:");
 	SerialUSB.println("h = help (displays this message)");
 	SerialUSB.println("R = reset to factory defaults");
+	SerialUSB.println("X = Find angular offset (PM motors)");
+	SerialUSB.println("Y = Toggle testing torque On/Off");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
 	SerialUSB.println();
@@ -424,6 +426,19 @@ void handleShortCmd() {
 		Logger::console("Starting the offset test");
 		startOffsetTest();
 		break;
+	case 'Y':
+		if (controllerStatus.IqRef != 0)
+		{
+			Logger::console("Stopping torque output");
+			controllerStatus.IqRef = 0;
+			controllerStatus.IdRef = 0;
+		}
+		else
+		{
+			Logger::console("Starting torque output");
+			controllerStatus.IqRef = 150;
+			controllerStatus.IdRef = 0;
+		}
 	}
 }
 

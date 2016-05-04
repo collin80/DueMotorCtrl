@@ -1,9 +1,11 @@
+#include <due_can.h>
 #include "config.h"
 #include "pid.h"
 #include "sinetable.h"
 #include "pwm.h"
 #include "adc.h"
 #include "encoder.h"
+#include "foc.h"
 
 int32_t mechVelo, elecVelo; //velocity both mechanical and electrical
 uint32_t focCounter; //how many times the FOC loop has run
@@ -24,6 +26,9 @@ void setupFOC()
 	dPID.setMaxValue(10); //max PWM duty cycle
 	
 	focCounter = 0;
+
+	controllerStatus.IdRef = 0;
+	controllerStatus.IqRef = 0;
 }
 
 //called every ADC interrupt to update settings for FOC (10,000 times per second)
@@ -129,8 +134,8 @@ void updateFOC()
 	}
 	else
 	{
-		controllerStatus.IdRef = 0; //for PMAC reference is zero here
-		controllerStatus.IqRef = 150; //hard coded small amount for testing
+		//controllerStatus.IdRef = 0; //for PMAC reference is zero here
+		//controllerStatus.IqRef = 150; //hard coded small amount for testing
 
 		//Step 6&7 - Use PI loops to get Vd, Vq values
 		qPID.setRef(controllerStatus.IqRef);
@@ -138,8 +143,8 @@ void updateFOC()
 		Vd = dPID.calculatePID(controllerStatus.Id);
 		Vq = qPID.calculatePID(controllerStatus.Iq);
 		
-		Vd = 0;
-		Vq = 0;
+		Vd = 0; //for a PMAC motor we do not want any direct voltage
+		//Vq = 0;
 	}
 
 	//Step 8 - calculate new rotor angle. Easier for PMAC as it is synchronous
@@ -191,6 +196,8 @@ void updateFOC()
 		}
 	}
 	
+	if (focCounter & 8) sendCANMsgs(); //every 8 times through this routine send debugging msg on CAN
+
 }
 
 void startOffsetTest()
@@ -202,4 +209,27 @@ void startOffsetTest()
 	offsetTest.bestAccum = 0;
 	offsetTest.testStart = focCounter;
 	settings.thetaOffset = 0;
+}
+
+void sendCANMsgs()
+{
+	CAN_FRAME outFrame;
+	int16_t temp;
+
+	//debugging message. Sends rotor angle and phase currents
+	outFrame.id = settings.canBaseTx;
+	outFrame.length = 8;
+	outFrame.extended = false;
+	outFrame.data.byte[0] = highByte(controllerStatus.theta);
+	outFrame.data.byte[1] = lowByte(controllerStatus.theta);
+	temp = controllerStatus.phaseCurrentA >> 16;
+	outFrame.data.byte[2] = highByte(temp);
+	outFrame.data.byte[3] = lowByte(temp);
+	temp = controllerStatus.phaseCurrentB >> 16;
+	outFrame.data.byte[4] = highByte(temp);
+	outFrame.data.byte[5] = lowByte(temp);
+	temp = controllerStatus.phaseCurrentC >> 16;
+	outFrame.data.byte[6] = highByte(temp);
+	outFrame.data.byte[7] = lowByte(temp);
+	Can0.sendFrame(outFrame);
 }

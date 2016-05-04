@@ -3,4 +3,5 @@
 void setupFOC();
 void updateFOC();
 void startOffsetTest();
+void sendCANMsgs();
 #endif
