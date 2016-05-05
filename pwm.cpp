@@ -86,3 +86,4 @@ void updatePWM(unsigned int a, unsigned int b, unsigned int c)
   PWMC_SetDutyCycle (PWM_INTERFACE, 2, c);
   PWMC_SetSyncChannelUpdateUnlock(PWM_INTERFACE); //enable setting of all those duties all at once
 }
+

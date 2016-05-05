@@ -24,10 +24,10 @@ void setup_encoder()
 
   //Remark out the next 4 lines to remove index interrupt and
   // accumulate index count
-  REG_TC0_CMR1 = (1<<8); // Set rising edge of Z
-  REG_TC0_IER1=0b10000000; // enable interrupt on Z
-  REG_TC0_IDR1=0b01111111; // disable other interrupts
-  NVIC_EnableIRQ(TC1_IRQn);
+  //REG_TC0_CMR1 = (1<<8); // Set rising edge of Z
+  //REG_TC0_IER1=0b10000000; // enable interrupt on Z
+  //REG_TC0_IDR1=0b01111111; // disable other interrupts
+  //NVIC_EnableIRQ(TC1_IRQn);
 }
 
 int getEncoderCount()
@@ -41,3 +41,4 @@ void TC1_Handler() {
  long dummy=REG_TC0_SR1; // vital - reading this clears some flag
  // otherwise you get infinite interrupts
 } 
+

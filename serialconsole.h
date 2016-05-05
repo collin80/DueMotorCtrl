@@ -11,3 +11,4 @@ unsigned int parseHexCharacter(char chr);
 unsigned int parseHexString(char *str, int length);
 
 #endif
+

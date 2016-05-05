@@ -7,3 +7,4 @@ int32_t getCurrent2();
 int32_t getInvTemp1();
 int32_t getInvTemp2();
 #endif
+

@@ -3,4 +3,7 @@
 void setupVHz();
 void updatePosVHz();
 void setVHzSpeed(int targetRPM);
+void startVHZOffsetTest();
+void sendVHzCANMsgs();
 #endif
+

@@ -29,7 +29,7 @@ void ADC_Handler() //cascaded trigger - PWM triggers ADC which triggers a DMA dr
 		interruptCount++;
 		//now, while still in the handler do the FOC magic right here.
 		
-		//if (settings.controlType == 0) updatePosVHz();
+		if (settings.controlType == 0) updatePosVHz();
 		if (settings.controlType == 1) updateFOC();
 	} 	
 }
@@ -109,3 +109,4 @@ int32_t getInvTemp2()
   	int32_t valu = (invTemp1Raw - settings.inverterTemp1Bias) * settings.inverterTemp1Scale;
 	return valu;
 }
+

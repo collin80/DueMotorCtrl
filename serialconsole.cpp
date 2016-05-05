@@ -270,7 +270,7 @@ void handleConfigCmd() {
 		if (newValue >= 0 && newValue <= 1) 
 		{
 			Logger::console("Setting control type to %i", newValue);
-			settings.motorType = newValue;
+			settings.controlType = newValue;
 			writeEEPROM = true;
 		}
 		else Logger::console("Invalid control type. Please enter 0 or 1"); 
@@ -424,7 +424,8 @@ void handleShortCmd() {
 		break;
 	case 'X':
 		Logger::console("Starting the offset test");
-		startOffsetTest();
+		if (settings.controlType == 1) startFOCOffsetTest();
+    if (settings.controlType == 0) startVHZOffsetTest();
 		break;
 	case 'Y':
 		if (controllerStatus.IqRef != 0)

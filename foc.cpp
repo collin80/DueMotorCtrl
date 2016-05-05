@@ -153,7 +153,7 @@ void updateFOC()
 	//and naturally decrease if we ask for less torque than it takes to maintain speed.
 	//theta is 0 to 511 for a full rotation but elecVelo is 0 to 65535 for full rotation
 	//this is a ratio of 128 so shift down 7 to get into same ballpark.
-	controllerStatus.theta += (elecVelo >> 7);
+	controllerStatus.theta = (controllerStatus.theta + (elecVelo >> 7)) & 511;
 
 	//Step 9 - Inverse park transform from Vd, Vq to Va, Vb - Uses new rotation angle
 	localTheta = (controllerStatus.theta + settings.thetaOffset) & 511;
@@ -169,7 +169,13 @@ void updateFOC()
 	vbSqrt = (Vb * (int)56756);
 	PWMB = (-VaScaled + vbSqrt) / 65536;
 	PWMC = (-VaScaled - vbSqrt) / 65536;
-	
+
+  if (!controllerStatus.runningOffsetTest)
+  {
+    if (focCounter & 8) sendCANMsgs(); //every 8 times through this routine send debugging msg on CAN7
+    return;
+  }
+  
 	//updatePWM(PWMA, PWMB, PWMC);
 
 	//SVM style PWM output
@@ -200,7 +206,7 @@ void updateFOC()
 
 }
 
-void startOffsetTest()
+void startFOCOffsetTest()
 {
 	controllerStatus.runningOffsetTest = true;
 	offsetTest.bestOffset = 0;
@@ -232,4 +238,16 @@ void sendCANMsgs()
 	outFrame.data.byte[6] = highByte(temp);
 	outFrame.data.byte[7] = lowByte(temp);
 	Can0.sendFrame(outFrame);
+
+ outFrame.id = settings.canBaseTx + 1;
+ outFrame.data.byte[0] = (elecVelo >> 24);
+ outFrame.data.byte[1] = (elecVelo >> 16) & 0xFF;
+ outFrame.data.byte[2] = (elecVelo >> 8) & 0xFF;
+ outFrame.data.byte[3] = (elecVelo) & 0xFF;
+ outFrame.data.byte[4] = (controllerStatus.lastEncoderPos >> 24);
+ outFrame.data.byte[5] = (controllerStatus.lastEncoderPos >> 16) & 0xFF;
+ outFrame.data.byte[6] = (controllerStatus.lastEncoderPos >> 8) & 0xFF;
+ outFrame.data.byte[7] = (controllerStatus.lastEncoderPos) & 0xFF;
+Can0.sendFrame(outFrame);
+ 
 }

@@ -83,10 +83,12 @@ void setup() {
   setup_pwm();
   setup_CAN();
   
-  if (settings.controlType == 0) setVHzSpeed(5); //ask for 5 RPM from V/Hz control system.
+  if (settings.controlType == 0) setVHzSpeed(1); //ask for 5 RPM from V/Hz control system.
 
   //temporary junk just for testing
   digitalWrite(42, HIGH); //enable drive
+
+  //if (settings.controlType == 0) startVHZOffsetTest();
 }
 
 void loop() {
@@ -101,7 +103,7 @@ void loop() {
   {
 	count = 0;
     
-	//SerialUSB.println(getEncoderCount());
+	SerialUSB.println(getEncoderCount());
 	//SerialUSB.println(getBusVoltage() >> 16);
 	SerialUSB.println(getCurrent1() >> 16);
 	SerialUSB.println(getCurrent2() >> 16);
