@@ -18,17 +18,19 @@ void setup_pwm()
   PIOC->PIO_ABSR |= 0xFC;  // switch to B peripheral
 
   //assuming 10khz and 1050 that would be a clock of 21MHz (Center aligned is twice speed)
+  //Center aligned mode counts from 0 up to 1050 then back down to 0 every cycle
+  //so you need twice the frequency to get the same result as left aligned mode.
   PWMC_ConfigureClocks((unsigned int)PWM_FREQ * MAX_PWM_DUTY * 2, 0, VARIANT_MCK );
   
   //find the number of ticks necessary to ensure that dead time is at least as long as requested.
-  int deadTicks = ((VARIANT_MCK * 1000ul) / ((unsigned int)PWM_FREQ * MAX_PWM_DUTY) / (unsigned int)PWM_TARGET_DEADTIME) + 1;
+  int deadTicks = ((VARIANT_MCK * 2000ul) / ((unsigned int)PWM_FREQ * MAX_PWM_DUTY) / (unsigned int)PWM_TARGET_DEADTIME) + 1;
 
-  deadTicks = 40;
+  deadTicks = 20; //20 ticks is 20 / 21MHz = 0.95us
 
   //                   PWM, Chan, Clock, Left/Center, Polarity, CountEvent, DeadEnable, DeadHighInv, DeadLowInv
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
   PWMC_SetPeriod (PWM_INTERFACE, 0, 1050) ;  // period = 525 ticks (10Khz), every tick is 1/5.25 micro seconds
-  PWMC_SetDutyCycle (PWM_INTERFACE, 0, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above so min is 0 max is 525)
+  PWMC_SetDutyCycle (PWM_INTERFACE, 0, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above so min is 0 max is 1050)
   PWMC_SetDeadTime(PWM_INTERFACE, 0, deadTicks, deadTicks) ; //set a bit of dead time around all transitions
 
   PWMC_ConfigureChannelExt (PWM, 1, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);

@@ -9,11 +9,16 @@
 
 #define PWM_FREQ			10000
 #define MAX_PWM_DUTY		1050 //max value duty cycle can take
+
 //if the value for PWM is within this number from either 0 or MAX then set it to either 0 or MAX. Prevents very short PWM pulses.
-//For instance, using a value of 50 when max duty is 1050 and freq is 10000 = Each pwm tick is 10k * 1050 = 10.5M resolution.
-//Thus, 50 / 10500000 = 4.76us minimum pulse width. But, then dead time is subtracted from that. So, plan accordingly
-#define PWM_BUFFER			100
-#define PWM_TARGET_DEADTIME	1300 //target dead time in nano seconds. So, 1000 is a micro second
+//PWM duty is counted twice because of center aligned mode (counts up, counts down) but dead time is only single. However, dead time
+//is being inserted on both sides so it is doubled that way anyway.
+//So, a duty buffer of 60 is 120 ticks in terms of how dead time is counted. Thus, assume the full 21MHz clock,
+//PWM buffer of 35 and dead time of 20. PWMBUFF * 2 = 70 - 20 - 20 = 30 ticks at 21MHz or a minimum
+//pulse width of 1.43us
+#define PWM_BUFFER			35
+
+#define PWM_TARGET_DEADTIME	1300 //target dead time in nano seconds. So, 1000 is a micro second - Ignored for now.
 
 #define DRIVE_ENABLE		42
 

@@ -7,10 +7,11 @@
 #include "encoder.h"
 #include <due_can.h>
 
-unsigned int posAccum;
-unsigned int posInc;
+int32_t posAccum;
+int32_t posInc;
 int rotorPosition;
 uint32_t vhzCounter;
+int a, b, c;
 
 OFFSET_TEST offsetVhz;
 
@@ -43,7 +44,6 @@ void setVHzSpeed(int targetRPM)
 
 void updatePosVHz()
 {
-	int a, b, c;
   int localRotorPos;
 
   vhzCounter++;
@@ -84,17 +84,16 @@ void updatePosVHz()
   }
 	
 	rotorPosition += (posAccum >> 16);
+
+	posAccum &= 0xFFFF;
   
 	rotorPosition &= 0x1FF;
 
-  localRotorPos = (rotorPosition + settings.thetaOffset) & 511;
-	
-	posAccum &= 0xFFFF;
-
-  a = ((_sin_times32768[localRotorPos] + 32768) * 200) / 65536;
-  b = ((_sin_times32768[(localRotorPos + 170) & 0x1FF]+32768) * 200) / 65536;
-	c = ((_sin_times32768[(localRotorPos + 341) & 0x1FF]+32768) * 200) / 65536;
-/*
+    localRotorPos = (rotorPosition + settings.thetaOffset) & 511;
+		
+	a = ( (_sin_times32768[localRotorPos] + 32768) * 200) / 65536;
+	b = ( (_sin_times32768[(localRotorPos + 170) & 511]+32768) * 200) / 65536;
+	c = ( (_sin_times32768[(localRotorPos + 341) & 511]+32768) * 200) / 65536;
 
   //SVM style PWM output
   if (a <= b)
@@ -119,8 +118,8 @@ void updatePosVHz()
       updatePWM(a - c, b - c, 0);
     }
   }
-  */
-updatePWM(a,b,c);
+
+//updatePWM(a,b,c);
  
   if (vhzCounter & 8) sendVHzCANMsgs();
 	
@@ -158,17 +157,18 @@ void sendVHzCANMsgs()
   outFrame.data.byte[6] = highByte(temp);
   outFrame.data.byte[7] = lowByte(temp);
   Can0.sendFrame(outFrame);
-/*
- outFrame.id = settings.canBaseTx + 1;
- outFrame.data.byte[0] = (elecVelo >> 24);
- outFrame.data.byte[1] = (elecVelo >> 16) & 0xFF;
- outFrame.data.byte[2] = (elecVelo >> 8) & 0xFF;
- outFrame.data.byte[3] = (elecVelo) & 0xFF;
- outFrame.data.byte[4] = (controllerStatus.lastEncoderPos >> 24);
- outFrame.data.byte[5] = (controllerStatus.lastEncoderPos >> 16) & 0xFF;
- outFrame.data.byte[6] = (controllerStatus.lastEncoderPos >> 8) & 0xFF;
- outFrame.data.byte[7] = (controllerStatus.lastEncoderPos) & 0xFF;
-Can0.sendFrame(outFrame);
-  */
+
+  outFrame.id = settings.canBaseTx + 1;
+  outFrame.data.byte[0] = 0;
+  outFrame.data.byte[1] = 0;
+  outFrame.data.byte[2] = highByte(a);
+  outFrame.data.byte[3] = lowByte(a);  
+  outFrame.data.byte[4] = highByte(b);
+  outFrame.data.byte[5] = lowByte(b);
+  outFrame.data.byte[6] = highByte(c);
+  outFrame.data.byte[7] = lowByte(c);
+  Can0.sendFrame(outFrame);
+
+ Can0.sendFrame(outFrame);
 }
 
