@@ -21,6 +21,11 @@ extern volatile uint16_t current2Raw;
 extern volatile uint16_t invTemp1Raw;
 extern volatile uint16_t invTemp2Raw;
 
+void watchdogSetup(void)
+{
+  watchdogEnable(1000); //number of milliseconds before wdt trips if you don't kick it (poor dog)
+}
+
 void setup() {
 
   analogReadResolution(12);
@@ -75,6 +80,10 @@ void setup() {
 	controllerStatus.lastEncoderPos = 0;
 	controllerStatus.rpm = 0;
 	controllerStatus.runningOffsetTest = false;
+	controllerStatus.rampingTest = false;
+	controllerStatus.rampingUp = true;
+	controllerStatus.rampRPM = 0;
+
   
   setup_encoder();
   if (settings.controlType == 0) setupVHz();
@@ -83,39 +92,58 @@ void setup() {
   setup_pwm();
   setup_CAN();
   
-  if (settings.controlType == 0) setVHzSpeed(1); //ask for 5 RPM from V/Hz control system.
-
-  //temporary junk just for testing
-  digitalWrite(42, HIGH); //enable drive
-
+  if (settings.controlType == 0) setVHzSpeed(0);
   //if (settings.controlType == 0) startVHZOffsetTest();
 }
 
 void loop() {
-  static int count;
-  int serialCnt;
-  int in_byte;
+	static int count;
+	int serialCnt;
+	int in_byte;
+	static int rampingCount = 0;
+
+	watchdogReset();
   
-  canRX(); //see if we've got any messages to input and parse
+	canRX(); //see if we've got any messages to input and parse
   
-  count++;
-  if (count > 200)
-  {
-	count = 0;
+	count++;
+	if (count > 200)
+	{
+		count = 0;
     
-	SerialUSB.println(getEncoderCount());
-	//SerialUSB.println(getBusVoltage() >> 16);
-	SerialUSB.println(getCurrent1() >> 16);
-	SerialUSB.println(getCurrent2() >> 16);
-	SerialUSB.println();
-  }
-  delay(2);
+		SerialUSB.println(getEncoderCount());
+		SerialUSB.println(getBusVoltage() >> 16);
+		SerialUSB.println(getCurrent1() >> 16);
+		SerialUSB.println(getCurrent2() >> 16);
+		SerialUSB.println();
+	}
+	delay(2);
   
-    serialCnt = 0;
+	serialCnt = 0;
 	while ((SerialUSB.available() > 0) && serialCnt < 128) {
 		serialCnt++;
 		in_byte = SerialUSB.read();
 		serialRXChar((uint8_t)in_byte);
+	}
+
+	if (controllerStatus.rampingTest)
+	{
+		rampingCount++;
+		if (rampingCount > 250)
+		{
+			rampingCount = 0;
+			if (controllerStatus.rampingUp) 
+			{
+				controllerStatus.rampRPM++;
+				if (controllerStatus.rampRPM > 100) controllerStatus.rampingUp = false;
+			}
+			else 
+			{
+				controllerStatus.rampRPM--;
+				if (controllerStatus.rampRPM < 2) controllerStatus.rampingUp = true;
+			}
+			setVHzSpeed(controllerStatus.rampRPM);
+		}
 	}
 }
 

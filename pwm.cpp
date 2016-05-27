@@ -18,30 +18,25 @@ void setup_pwm()
   PIOC->PIO_ABSR |= 0xFC;  // switch to B peripheral
 
   //assuming 10khz and 1050 that would be a clock of 21MHz (Center aligned is twice speed)
-  //Center aligned mode counts from 0 up to 1050 then back down to 0 every cycle
+  //Center aligned mode counts from 0 up to max then back down to 0 every cycle
   //so you need twice the frequency to get the same result as left aligned mode.
   PWMC_ConfigureClocks((unsigned int)PWM_FREQ * MAX_PWM_DUTY * 2, 0, VARIANT_MCK );
   
-  //find the number of ticks necessary to ensure that dead time is at least as long as requested.
-  int deadTicks = ((VARIANT_MCK * 2000ul) / ((unsigned int)PWM_FREQ * MAX_PWM_DUTY) / (unsigned int)PWM_TARGET_DEADTIME) + 1;
-
-  deadTicks = 20; //20 ticks is 20 / 21MHz = 0.95us
-
   //                   PWM, Chan, Clock, Left/Center, Polarity, CountEvent, DeadEnable, DeadHighInv, DeadLowInv
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 0, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
-  PWMC_SetPeriod (PWM_INTERFACE, 0, 1050) ;  // period = 525 ticks (10Khz), every tick is 1/5.25 micro seconds
+  PWMC_SetPeriod (PWM_INTERFACE, 0, MAX_PWM_DUTY) ;  // period = 525 ticks (10Khz), every tick is 1/5.25 micro seconds
   PWMC_SetDutyCycle (PWM_INTERFACE, 0, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above so min is 0 max is 1050)
-  PWMC_SetDeadTime(PWM_INTERFACE, 0, deadTicks, deadTicks) ; //set a bit of dead time around all transitions
+  PWMC_SetDeadTime(PWM_INTERFACE, 0, PWM_DEADTIME, PWM_DEADTIME) ; //set a bit of dead time around all transitions
 
   PWMC_ConfigureChannelExt (PWM, 1, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
-  PWMC_SetPeriod (PWM, 1, 1050) ; 
+  PWMC_SetPeriod (PWM, 1, MAX_PWM_DUTY) ; 
   PWMC_SetDutyCycle (PWM, 1, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above
-  PWMC_SetDeadTime(PWM, 1, deadTicks, deadTicks) ; //set some dead time
+  PWMC_SetDeadTime(PWM, 1, PWM_DEADTIME, PWM_DEADTIME) ; //set some dead time
 
   PWMC_ConfigureChannelExt (PWM, 2, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
-  PWMC_SetPeriod (PWM, 2, 1050) ;
+  PWMC_SetPeriod (PWM, 2, MAX_PWM_DUTY) ;
   PWMC_SetDutyCycle (PWM, 2, 0); //set duty cycle of channel 0 to 0 (duty is out of the period above
-  PWMC_SetDeadTime(PWM, 2, deadTicks, deadTicks) ; //set some dead time
+  PWMC_SetDeadTime(PWM, 2, PWM_DEADTIME, PWM_DEADTIME) ; //set some dead time
 
   PWMC_ConfigureSyncChannel(PWM_INTERFACE, 7, 0, 0,0); //make channels 0, 1, 2 be synchronous
   PWMC_SetSyncChannelUpdatePeriod(PWM_INTERFACE, 1);
@@ -49,11 +44,9 @@ void setup_pwm()
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 1, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);
   PWMC_ConfigureChannelExt(PWM_INTERFACE, 2, PWM_CMR_CPRE_CLKA, PWM_CMR_CALG, 0, 0, PWM_CMR_DTE, 0, 0);  
   
-  //Configure PWM hardware comparison unit to trigger while counting up and just slightly
-  //less than the maximum value. This triggers the ADC and it starts to convert right about at the time
-  //we actually reach 1050 which is the top value.
+  //Configure PWM hardware comparison unit to trigger while counting up and at the max duty value
   int compMode = PWM_CMPM_CEN; //+ PWM_CMPM_CTR(0) + PWM_CMPM_CPR(0) + PWM_CMPM_CUPR(0);
-  PWMC_ConfigureComparisonUnit(PWM_INTERFACE, 0, 1030, compMode);
+  PWMC_ConfigureComparisonUnit(PWM_INTERFACE, 0, MAX_PWM_DUTY, compMode);
   //Use comparison unit 0 for Event line 0 which the ADC hardware is looking for triggers on
   PWMC_ConfigureEventLineMode(PWM_INTERFACE, 0, PWM_ELMR_CSEL0);
   
@@ -65,9 +58,12 @@ void setup_pwm()
 void updatePWM(unsigned int a, unsigned int b, unsigned int c)
 {
   static int ledCounter = 0;
+  int pwmBuff = PWM_BUFFER;
+  uint32_t upperDuty = MAX_PWM_DUTY - pwmBuff;
+  uint32_t dutyA = a, dutyB = b, dutyC = c;
   
+  //For debugging purposes the LED flashes in time to the PWM frequency. If the LED is flashing you're still up and running.
   ledCounter++;
-  
   if (ledCounter == 1000) PIO_SetOutput(PIOC, PIO_PC20, HIGH, 0, PIO_PULLUP);
   if (ledCounter == 2000)
   {
@@ -75,17 +71,18 @@ void updatePWM(unsigned int a, unsigned int b, unsigned int c)
       ledCounter = 0;
   }
   
-  if (a < PWM_BUFFER) a = 0;
-  if (b < PWM_BUFFER) b = 0;
-  if (c < PWM_BUFFER) c = 0;
+  //Prevent both types of short pulses.
+  if (dutyA < PWM_BUFFER) dutyA = 0;
+  if (dutyB < PWM_BUFFER) dutyB = 0;
+  if (dutyC < PWM_BUFFER) dutyC = 0;
 
-  if (a > (MAX_PWM_DUTY - PWM_BUFFER)) a = MAX_PWM_DUTY;
-  if (b > (MAX_PWM_DUTY - PWM_BUFFER)) b = MAX_PWM_DUTY;
-  if (c > (MAX_PWM_DUTY - PWM_BUFFER)) c = MAX_PWM_DUTY;
+  if (dutyA > 955) dutyA = MAX_PWM_DUTY;
+  if (dutyB > upperDuty) dutyB = MAX_PWM_DUTY;
+  if (dutyC > upperDuty) dutyC = MAX_PWM_DUTY;
     
-  PWMC_SetDutyCycle (PWM_INTERFACE, 0, a);
-  PWMC_SetDutyCycle (PWM_INTERFACE, 1, b);
-  PWMC_SetDutyCycle (PWM_INTERFACE, 2, c);
+  PWMC_SetDutyCycle (PWM_INTERFACE, 0, dutyA);
+  PWMC_SetDutyCycle (PWM_INTERFACE, 1, dutyB);
+  PWMC_SetDutyCycle (PWM_INTERFACE, 2, dutyC);
   PWMC_SetSyncChannelUpdateUnlock(PWM_INTERFACE); //enable setting of all those duties all at once
 }
 

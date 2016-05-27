@@ -31,6 +31,7 @@ void serialPrintMenu() {
 	SerialUSB.println("R = reset to factory defaults");
 	SerialUSB.println("X = Find angular offset (PM motors)");
 	SerialUSB.println("Y = Toggle testing torque On/Off");
+	SerialUSB.println("Z = Toggle ramping test");
 	SerialUSB.println();
 	SerialUSB.println("Config Commands (enter command=newvalue). Current values shown in parenthesis:");
 	SerialUSB.println();
@@ -140,7 +141,7 @@ void handleConfigCmd() {
 
 	// strtol() is able to parse also hex values (e.g. a string "0xCAFE"), useful for enable/disable by device id
 	newValue = strtol((char *) (cmdBuffer + i), NULL, 0); //try to turn the string into a number
-	newFloatVal = strtof((char *) (cmdBuffer + i), nullptr);
+	newFloatVal = strtof((char *) (cmdBuffer + i), 0);
 	newString = (char *)(cmdBuffer + i); //leave it as a string
 
 	cmdString.toUpperCase();
@@ -440,6 +441,20 @@ void handleShortCmd() {
 			controllerStatus.IqRef = 150;
 			controllerStatus.IdRef = 0;
 		}
+		break;
+	case 'Z':
+		if (controllerStatus.rampingTest)
+		{
+			controllerStatus.rampingTest = false;
+		}
+		else
+		{
+			controllerStatus.rampingUp = true;
+			controllerStatus.rampRPM = 0;
+			controllerStatus.rampingTest = true;
+			setVHzSpeed(0);
+		}
+		break;
 	}
 }
 

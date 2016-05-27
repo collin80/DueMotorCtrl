@@ -249,5 +249,4 @@ void sendCANMsgs()
  outFrame.data.byte[6] = (controllerStatus.lastEncoderPos >> 8) & 0xFF;
  outFrame.data.byte[7] = (controllerStatus.lastEncoderPos) & 0xFF;
 Can0.sendFrame(outFrame);
- 
 }

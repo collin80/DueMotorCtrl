@@ -32,6 +32,15 @@ void setVHzSpeed(int targetRPM)
 	int preMultiplier = 16;
 	int postMultiplier = 0;
 	int testVal = elecRPM;
+
+	if (targetRPM == 0) 
+	{
+		  digitalWrite(42, LOW); //disable drive
+		  return;
+	}
+
+	digitalWrite(42, HIGH); //enable drive
+
 	while (testVal > 1024)
 	{
 	      testVal = testVal >> 1;
@@ -40,6 +49,8 @@ void setVHzSpeed(int targetRPM)
 	}
 	
 	posInc = ((((elecRPM * 512) / 60) << preMultiplier) / 10000) << postMultiplier;
+
+	controllerStatus.rpm = targetRPM;
 }
 
 void updatePosVHz()
@@ -169,6 +180,6 @@ void sendVHzCANMsgs()
   outFrame.data.byte[7] = lowByte(c);
   Can0.sendFrame(outFrame);
 
- Can0.sendFrame(outFrame);
+ Can0.sendFrame(outFrame); 
 }
 

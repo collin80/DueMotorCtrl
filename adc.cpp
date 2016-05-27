@@ -27,8 +27,7 @@ void ADC_Handler() //cascaded trigger - PWM triggers ADC which triggers a DMA dr
 		ADC->ADC_RNPR=(uint32_t)adc_buf;
 		ADC->ADC_RNCR=5;		
 		interruptCount++;
-		//now, while still in the handler do the FOC magic right here.
-		
+		//now, while still in the handler do the FOC magic right here.		
 		if (settings.controlType == 0) updatePosVHz();
 		if (settings.controlType == 1) updateFOC();
 	} 	

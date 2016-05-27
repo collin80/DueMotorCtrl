@@ -7,18 +7,26 @@
 #define CONFIG_H_
 #include <Arduino.h>
 
-#define PWM_FREQ			10000
-#define MAX_PWM_DUTY		1050 //max value duty cycle can take
+//The two values PWM_FREQ and MAX_PWM_DUTY should form an even divisor to the 84Mhz main clock
+//The clock used can be from 1x divisor to 255 but will be integer increments
+//The equation is 84Mhz / (Freq * Duty * 2)
+//So, with 7KHz PWM we get 84Mhz / 7Khz = 12k. It divides evenly. 
+//The max duty being 1000 means 12k turns into 12. Then, center aligned mode brings it down to 6.
+//The register can take a value of 6 so this works out. 
+#define PWM_FREQ			7000
+#define MAX_PWM_DUTY		1000 //max value duty cycle can take
+#define PWM_CLOCK			(PWM_FREQ * MAX_PWM_DUTY * 2ul) //number of PWM ticks per second - autocalculated - don't modify this line
+#define PWM_PICO_PER_TICK	(1000000000ul / (PWM_CLOCK / 1000ul)) //Number of picoSeconds per PWM clock tick - trust me, it's relevant
 
-//if the value for PWM is within this number from either 0 or MAX then set it to either 0 or MAX. Prevents very short PWM pulses.
-//PWM duty is counted twice because of center aligned mode (counts up, counts down) but dead time is only single. However, dead time
-//is being inserted on both sides so it is doubled that way anyway.
-//So, a duty buffer of 60 is 120 ticks in terms of how dead time is counted. Thus, assume the full 21MHz clock,
-//PWM buffer of 35 and dead time of 20. PWMBUFF * 2 = 70 - 20 - 20 = 30 ticks at 21MHz or a minimum
-//pulse width of 1.43us
-#define PWM_BUFFER			35
+//target dead time in nano seconds. So, 1000 is a micro second. You will need to tune this to the IGBT hardware.
+#define PWM_TARGET_DEADTIME	1300 
+//autocalculated from constant parameters. Don't change this, change the input parameters above
+#define PWM_DEADTIME		(((PWM_TARGET_DEADTIME * 1000ul) / PWM_PICO_PER_TICK) + 1)
 
-#define PWM_TARGET_DEADTIME	1300 //target dead time in nano seconds. So, 1000 is a micro second - Ignored for now.
+//If the PWM pulse would be shorter than this many nano seconds then suppress it. 
+#define PWM_BUFFER_NANOS	1000 
+//this is an autocalculated value based on a bunch of the above constants. Do not change this equation.
+#define PWM_BUFFER			((PWM_BUFFER_NANOS * 500ul) / PWM_PICO_PER_TICK) + PWM_DEADTIME + PWM_DEADTIME //don't know why... PWM_DEADTIME * 2 doesn't work but adding twice does...
 
 #define DRIVE_ENABLE		42
 
@@ -81,6 +89,9 @@ struct STATUS
 	int32_t lastEncoderPos;
 	uint16_t rpm; //whole numbers - 1 rpm
 	bool runningOffsetTest;
+	bool rampingTest;
+	bool rampingUp;
+	uint16_t rampRPM;
 };
 
 struct OFFSET_TEST
