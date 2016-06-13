@@ -26,9 +26,29 @@
 //If the PWM pulse would be shorter than this many nano seconds then suppress it. 
 #define PWM_BUFFER_NANOS	1000 
 //this is an autocalculated value based on a bunch of the above constants. Do not change this equation.
-#define PWM_BUFFER			((PWM_BUFFER_NANOS * 500ul) / PWM_PICO_PER_TICK) + PWM_DEADTIME + PWM_DEADTIME //don't know why... PWM_DEADTIME * 2 doesn't work but adding twice does...
+#define PWM_BUFFER			(((PWM_BUFFER_NANOS * 500ul) / PWM_PICO_PER_TICK) + (PWM_DEADTIME * 2))
+
+//The ADC ports are 12 bits and so range from 0 to 4096 in value
+//The current sensors rest around in the middle at 2013
+//These below values form a window. If the ADC values of current sensor 1 goes outside this window the PWM fault line will trigger and PWM will shut down
+//this forms a reasonably fast fault mechanism but it is not as reliable or fast as a hardware solution. But, if you're using a DMOC then the
+//DMOC power hardware has hardware based faulting anyway. This is just a backup mechanism.
+//The current sensors on a dmoc have a scaling factor of about 0.5 so each value here is 1/2 an amp. Plan accordingly.
+#define ADC_CURR_LOWTHRESH	1100 //right around -453A
+#define ADC_CURR_HIGHTHRESH	2900 //right around +447A
 
 #define DRIVE_ENABLE		42
+#define ADC_TEMP1			0
+#define ADC_TEMP2			4
+#define ADC_CURRENT1		1
+#define ADC_CURRENT2		2
+#define ADC_BUSV			3
+#define ADC_MOTORTEMP1		5
+#define ADC_MOTORTEMP2		7
+#define DIN0				48
+#define DIN1				49
+#define DIN2				50
+#define DIN3				51
 
 #define EEPROM_PAGE			10
 
@@ -54,6 +74,11 @@ struct EEPROMSettings { //87 bytes so far. Keep under 256
 	uint32_t inverterTemp1Bias; //4
 	uint32_t inverterTemp2Scale;//4	
 	uint32_t inverterTemp2Bias; //4
+	uint32_t motorTemp1Scale;//4
+	uint32_t motorTemp1Bias; //4
+	uint32_t motorTemp2Scale;//4	
+	uint32_t motorTemp2Bias; //4
+
 	
 	uint8_t motorType; //1 - 0 = induction, 1 = permanent magnet (sine), 2 = BLDC (trapezoid)
 	uint8_t controlType; //0 = Vhz, 1 = FOC

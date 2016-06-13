@@ -49,7 +49,15 @@ void setup_pwm()
   PWMC_ConfigureComparisonUnit(PWM_INTERFACE, 0, MAX_PWM_DUTY, compMode);
   //Use comparison unit 0 for Event line 0 which the ADC hardware is looking for triggers on
   PWMC_ConfigureEventLineMode(PWM_INTERFACE, 0, PWM_ELMR_CSEL0);
-  
+
+/*
+  PWM->PWM_FMR = (1 << 4); //set FPOL for ADC fault input to 1
+  delayMicroseconds(50);
+  PWM->PWM_FMR |= (1 << 12); //then set mode to require manual clearing of ADC fault
+  delayMicroseconds(50);
+  PWM->PWM_FPE1 = (1 << 4); //all three channels are synch. so they all use Chan 0
+  delayMicroseconds(50);
+  */
   PWMC_EnableChannel (PWM_INTERFACE, 0) ;   // enable
   PWMC_EnableChannel (PWM_INTERFACE, 1) ;   // enable
   PWMC_EnableChannel (PWM_INTERFACE, 2) ;   // enable
@@ -76,7 +84,7 @@ void updatePWM(unsigned int a, unsigned int b, unsigned int c)
   if (dutyB < PWM_BUFFER) dutyB = 0;
   if (dutyC < PWM_BUFFER) dutyC = 0;
 
-  if (dutyA > 955) dutyA = MAX_PWM_DUTY;
+  if (dutyA > upperDuty) dutyA = MAX_PWM_DUTY;
   if (dutyB > upperDuty) dutyB = MAX_PWM_DUTY;
   if (dutyC > upperDuty) dutyC = MAX_PWM_DUTY;
     

@@ -445,10 +445,12 @@ void handleShortCmd() {
 	case 'Z':
 		if (controllerStatus.rampingTest)
 		{
+			Logger::console("Stopping RPM ramp test");
 			controllerStatus.rampingTest = false;
 		}
 		else
 		{
+			Logger::console("Starting RPM ramp test");
 			controllerStatus.rampingUp = true;
 			controllerStatus.rampRPM = 0;
 			controllerStatus.rampingTest = true;

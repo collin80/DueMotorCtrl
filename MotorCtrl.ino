@@ -5,6 +5,7 @@
 #include "adc.h"
 #include "pwm.h"
 #include "encoder.h"
+#include "dig_in.h"
 #include "serialconsole.h"
 #include "canbus.h"
 #include "vhz.h"
@@ -20,10 +21,12 @@ extern volatile uint16_t current1Raw;
 extern volatile uint16_t current2Raw;
 extern volatile uint16_t invTemp1Raw;
 extern volatile uint16_t invTemp2Raw;
+extern volatile uint16_t motorTemp1Raw;
+extern volatile uint16_t motorTemp2Raw;
 
 void watchdogSetup(void)
 {
-  watchdogEnable(1000); //number of milliseconds before wdt trips if you don't kick it (poor dog)
+  watchdogEnable(250); //number of milliseconds before wdt trips if you don't kick it (poor dog)
 }
 
 void setup() {
@@ -86,13 +89,16 @@ void setup() {
 
   
   setup_encoder();
+  setup_digital_inputs();
+
   if (settings.controlType == 0) setupVHz();
   if (settings.controlType == 1) setupFOC();
   setup_adc();
   setup_pwm();
   setup_CAN();
-  
-  if (settings.controlType == 0) setVHzSpeed(0);
+
+  //digitalWrite(42, HIGH); //enable drive
+  //if (settings.controlType == 0) setVHzSpeed(5);
   //if (settings.controlType == 0) startVHZOffsetTest();
 }
 
@@ -111,10 +117,31 @@ void loop() {
 	{
 		count = 0;
     
+		SerialUSB.print("En:");
 		SerialUSB.println(getEncoderCount());
+		SerialUSB.print("V:");
 		SerialUSB.println(getBusVoltage() >> 16);
+		SerialUSB.print("C1:");
 		SerialUSB.println(getCurrent1() >> 16);
+		SerialUSB.print("C2:");
 		SerialUSB.println(getCurrent2() >> 16);
+		SerialUSB.print("IT1:");
+		SerialUSB.println(invTemp1Raw);
+		SerialUSB.print("IT2:");
+		SerialUSB.println(invTemp2Raw);
+		SerialUSB.print("MT1:");
+		SerialUSB.println(motorTemp1Raw);
+		SerialUSB.print("MT1:");
+		SerialUSB.println(motorTemp2Raw);
+		SerialUSB.print("D1:");
+		SerialUSB.println(getDigitalInput(0));
+		SerialUSB.print("D2:");
+		SerialUSB.println(getDigitalInput(1));
+		SerialUSB.print("D3:");
+		SerialUSB.println(getDigitalInput(2));
+		SerialUSB.print("D4:");
+		SerialUSB.println(getDigitalInput(3));
+		//if (PWM->PWM_FSR & (1 << 12)) SerialUSB.println("Faulted!");
 		SerialUSB.println();
 	}
 	delay(2);
@@ -143,6 +170,19 @@ void loop() {
 				if (controllerStatus.rampRPM < 2) controllerStatus.rampingUp = true;
 			}
 			setVHzSpeed(controllerStatus.rampRPM);
+		}
+	}
+	else
+	{
+		rampingCount++;
+		if (rampingCount > 50)
+		{
+			rampingCount = 0;
+			if (controllerStatus.rampRPM > 0) 
+			{
+				controllerStatus.rampRPM--;
+				setVHzSpeed(controllerStatus.rampRPM);
+			}
 		}
 	}
 }
