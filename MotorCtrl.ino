@@ -160,7 +160,7 @@ void loop() {
 		serialRXChar((uint8_t)in_byte);
 	}
 
-	if (controllerStatus.rampingTest)
+	if (controllerStatus.rampingTest || getDigitalInput(3))
 	{
 		rampingCount++;
 		if (rampingCount > 250)
@@ -169,7 +169,7 @@ void loop() {
 			if (controllerStatus.rampingUp) 
 			{
 				controllerStatus.rampRPM++;
-				if (controllerStatus.rampRPM > 100) controllerStatus.rampingUp = false;
+				if (controllerStatus.rampRPM > 40) controllerStatus.rampingUp = false;
 			}
 			else 
 			{
@@ -179,7 +179,7 @@ void loop() {
 			setVHzSpeed(controllerStatus.rampRPM);
 		}
 	}
-	else
+	else if (!getDigitalInput(3))
 	{
 		rampingCount++;
 		if (rampingCount > 50)

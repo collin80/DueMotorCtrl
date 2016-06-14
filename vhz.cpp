@@ -143,7 +143,7 @@ void updatePosVHz()
 	a = ( (_sin_times32768[localRotorPos] + 32768) * 200) / 65536;
 	b = ( (_sin_times32768[(localRotorPos + 170) & 511]+32768) * 200) / 65536;
 	c = ( (_sin_times32768[(localRotorPos + 341) & 511]+32768) * 200) / 65536;
-
+	/*
   //SVM style PWM output
   if (a <= b)
   {
@@ -167,8 +167,8 @@ void updatePosVHz()
       updatePWM(a - c, b - c, 0);
     }
   }
-
-//updatePWM(a,b,c);
+  */
+  updatePWM(a,b,c);
  
   if (vhzCounter & 8) sendVHzCANMsgs();
 	
@@ -208,8 +208,9 @@ void sendVHzCANMsgs()
   Can0.sendFrame(outFrame);
 
   outFrame.id = settings.canBaseTx + 1;
-  outFrame.data.byte[0] = 0;
-  outFrame.data.byte[1] = 0;
+  temp = (getBusVoltage() >> 17);
+  outFrame.data.byte[0] = lowByte(temp);
+  outFrame.data.byte[1] = lowByte(currentSector);
   outFrame.data.byte[2] = highByte(a);
   outFrame.data.byte[3] = lowByte(a);  
   outFrame.data.byte[4] = highByte(b);
