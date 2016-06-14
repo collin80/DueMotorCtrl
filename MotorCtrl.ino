@@ -52,6 +52,10 @@ void setup() {
 	settings.inverterTemp1Bias = 0;
 	settings.inverterTemp2Scale = 65536;
 	settings.inverterTemp2Bias = 0;
+	settings.motorTemp1Bias = 0;
+	settings.motorTemp1Scale = 65536;
+	settings.motorTemp2Bias = 0;
+	settings.motorTemp2Scale = 65536;
 	settings.encoderCount = 425;
 	settings.encoderDirection = 255; //1 is incrementing forward, anything else is deincrementing forward
 	settings.maxRPM = 1000;
@@ -67,6 +71,10 @@ void setup() {
 	settings.maxAmpsRegen = 200; //in tenths
 	settings.logLevel = 1;
 	settings.thetaOffset = 0;
+	settings.vhzProperRPM = 1800;
+	settings.hallAB = 255;
+	settings.hallBC = 255;
+	settings.hallCA = 255;
 	settings.version = EEPROM_VER;
 	EEPROM.write(EEPROM_PAGE, settings);
   }
@@ -87,7 +95,6 @@ void setup() {
 	controllerStatus.rampingUp = true;
 	controllerStatus.rampRPM = 0;
 
-  
   setup_encoder();
   setup_digital_inputs();
 

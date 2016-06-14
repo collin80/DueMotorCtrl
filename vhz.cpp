@@ -5,6 +5,7 @@
 #include "sinetable.h"
 #include "adc.h"
 #include "encoder.h"
+#include "dig_in.h"
 #include <due_can.h>
 
 int32_t posAccum;
@@ -12,6 +13,8 @@ int32_t posInc;
 int rotorPosition;
 uint32_t vhzCounter;
 int a, b, c;
+int currentSector, lastSector;
+bool needSectorCorrection;
 
 OFFSET_TEST offsetVhz;
 
@@ -21,6 +24,21 @@ void setupVHz()
   posAccum = 0;
   rotorPosition = 0;
   vhzCounter = 0;
+  needSectorCorrection = true;
+
+  if (settings.hallAB != 255 && settings.hallBC != 255 & settings.hallCA != 255)
+  {
+	  int sector = getMotorSector();
+	  if (sector == 0)
+	  {
+		  SerialUSB.println("Not using hall effect sensors for initial position");
+		  return;
+	  }
+	  SerialUSB.print("Hall effect sensors indicate we're starting in sector ");
+	  SerialUSB.println(sector);
+	  rotorPosition = ((sector - 1) * 85) + 42; //start in the middle of whichever sector we're in as a guess
+	  currentSector = lastSector = sector;
+  }
 }
 
 //this target RPM is in mechanical / motor RPM not electrical RPM
@@ -62,6 +80,26 @@ void updatePosVHz()
   controllerStatus.phaseCurrentB = getCurrent2();
   controllerStatus.phaseCurrentC = getCurrent1();
   controllerStatus.phaseCurrentA = -controllerStatus.phaseCurrentB - controllerStatus.phaseCurrentC;
+
+  if (needSectorCorrection)
+  {
+	  currentSector = getMotorSector();
+	  if (currentSector != lastSector)
+	  {
+		  needSectorCorrection = false;
+		  int offset = currentSector - lastSector;
+		  if (offset == -1)
+		  {
+			  rotorPosition = ((currentSector) * 85) & 0x1FF;
+		  }
+		  else if (offset == 1)
+		  {
+			  rotorPosition = ((currentSector - 1) * 85);
+		  }
+
+		  lastSector = currentSector;
+	  }
+  }
 		
 	posAccum += posInc;
 

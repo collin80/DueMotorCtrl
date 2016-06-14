@@ -96,6 +96,10 @@ struct EEPROMSettings { //87 bytes so far. Keep under 256
 	uint16_t maxAmpsRegen; // 2 - in tenths
 	uint16_t vhzProperRPM; // 2 - RPM at which we should be up to full voltage.
 	uint16_t thetaOffset; //2 - offset for theta used for PMAC motors
+
+	uint8_t hallAB; //if there is a hall effect sensor between A and B magnets then give digital input here (0-3)
+	uint8_t hallBC; //if there is a hall effect sensor between B and C magnets then give digital input here (0-3)
+	uint8_t hallCA; //if there is a hall effect sensor between C and A magnets then give digital input here (0-3)
 };
 
 //much of this is only relevant for debugging and internal operations
