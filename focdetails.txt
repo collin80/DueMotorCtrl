@@ -1,0 +1,15 @@
+How FOC works:
+You capture the amperage at each of the three phases (well, first two is all thats required)
+Take those amperages and apply clarke transform. This decomposes the three phase current to two
+phase current - Ia and Ib which are time variant direct and quadrature current (90 degrees apart)
+These currents are then rotated with the park transform to be time invariant Id and Iq which are 
+the actual direct and quadrature currents. Now, we know the D and Q currents and can figure out
+if they're what we hoped they'd be or not. A PI loop controls a correlated set of variables Vd and Vq that
+track output voltage in direct and quadrature. Those variables set the output PWM intensity but they're
+also time invariant. We need to rotate them to time variant via the inverse park transform. Now we've
+got Va and Vb which are the two voltages perpendicular to each other in time variant space. From these
+two voltages we need to get back to the three phases currents. This could be done via an inverse
+clarke transform that turns them into three phase currents again.
+
+
+

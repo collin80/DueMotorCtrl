@@ -171,21 +171,21 @@ void Logger::log(LogLevel level, const char *format, va_list args)
     SerialUSB.print(" - ");
 
     switch (level) {
-        case Debug:
-            SerialUSB.print("DEBUG");
-            break;
+    case Debug:
+        SerialUSB.print("DEBUG");
+        break;
 
-        case Info:
-            SerialUSB.print("INFO");
-            break;
+    case Info:
+        SerialUSB.print("INFO");
+        break;
 
-        case Warn:
-            SerialUSB.print("WARNING");
-            break;
+    case Warn:
+        SerialUSB.print("WARNING");
+        break;
 
-        case Error:
-            SerialUSB.print("ERROR");
-            break;
+    case Error:
+        SerialUSB.print("ERROR");
+        break;
     }
 
     SerialUSB.print(": ");

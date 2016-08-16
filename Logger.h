@@ -38,23 +38,23 @@ public:
         Debug = 0, Info = 1, Warn = 2, Error = 3, Off = 4
     };
     static void debug(const char *, ...);
-	static void info(const char *, ...);
-	static void warn(const char *, ...);
-	static void error(const char *, ...);
-	static void console(const char *, ...);
-	static void file(const char *, ...);
-	static void fileRaw(uint8_t*, int);
+    static void info(const char *, ...);
+    static void warn(const char *, ...);
+    static void error(const char *, ...);
+    static void console(const char *, ...);
+    static void file(const char *, ...);
+    static void fileRaw(uint8_t*, int);
     static void setLoglevel(LogLevel);
     static LogLevel getLogLevel();
     static uint32_t getLastLogTime();
     static boolean isDebug();
-	static void loop();
+    static void loop();
 private:
-	static LogLevel logLevel;
-	static uint32_t lastLogTime;
+    static LogLevel logLevel;
+    static uint32_t lastLogTime;
 
-	static void log(LogLevel, const char *format, va_list);
-	static void logMessage(const char *format, va_list args);
+    static void log(LogLevel, const char *format, va_list);
+    static void logMessage(const char *format, va_list args);
 };
 
 #endif /* LOGGER_H_ */

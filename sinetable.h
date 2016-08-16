@@ -1,5 +1,7 @@
 #ifndef SINE_H_
 #define SINE_H_
-extern int _sin_times32768[];
+#include <Arduino.h>
+
+extern int32_t _sin_times32768[];
 #endif
 
